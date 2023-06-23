@@ -1,9 +1,9 @@
 const fs = require('fs');
 const simheader = 'ZCB Zebak + 2 spec @ 300 rlvl';
-const iterations = 50000;
+const iterations = 100;
 const rubytoggle = true;
 const zcbspecs = 0;
-const vwrspecs = 3;
+const vwrspecs = 0;
 //salt = 26 ovl = 21 rangepot = 13
 const boost = 26;
 
