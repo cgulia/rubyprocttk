@@ -13,7 +13,8 @@
         <canvas id="myChart"></canvas>
     </div>
     <div id="calc">
-      <h2><b>Calc & Sim Data:</b></h2>
+      <span class="hd">[Calc & Sim Output]</span>
+      <br><br>
     </div>
   </div>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -33,7 +34,7 @@
       data: {
           labels: dlabels,
         datasets: [{
-              label: dpsheader,
+              label: '',
             data: dvalues,
             borderWidth: 1
         },
@@ -41,6 +42,7 @@
       },
       options: {
           tension: 0,
+          pointRadius:1,
         scales: {
             y: {
               beginAtZero: true
