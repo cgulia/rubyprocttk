@@ -1,6 +1,6 @@
 const fs = require('fs');
 const simheader = 'ZCB Zebak + 2 spec @ 300 rlvl';
-const iterations = 100;
+const iterations = 10000;
 const rubytoggle = true;
 const zcbspecs = 0;
 const vwrspecs = 0;
@@ -120,7 +120,7 @@ function calc(trg, wpn, header) {
         console.error(err)
     }
     console.log('max:' + max + '\nattackroll:' + aroll + '\ndefroll:' + droll + '\nacc:' + acc + '\ndph:' + dph + '\ndps:' + dps);
-    sim(trg, wpn, aroll, max, wpn.aspd, 10000, simheader);
+    sim(trg, wpn, aroll, max, wpn.aspd, iterations, simheader);
 }
 
 //sim(target.zebak, weapons.zcbmasori, 48822, 53, 5, 10000, "ZCB Zebak + 2 spec @ 300 rlvl");
@@ -136,19 +136,25 @@ function sim(trg, wpn, maroll, max, aspd, its, header) {
 
     console.log('\nrunning ' + its + ' iterations...');
     for (let it = 0; it < its; it ++) {
+        var attacktime = 0;
         var chp = 0;
         if (trg.toamult) {
             chp = (trg.hp * drollmult);
         } else {
             chp = trg.hp;
         }
-        chp -= (zcbspecs * 110);
-        var attackcount = 0 + zcbspecs;
+
+        //redundant spec checks
+        if (zcbspecs > 0) {
+            chp -= (zcbspecs * 110);
+            attacktime += Math.floor(0.6 * 5);
+        }
+
         if (vwrspecs > 0) {
             for (v = 0; v < vwrspecs; v++) {
                 var vwhit = Math.floor(Math.random() * 75);
                 chp -= vwhit;
-                attackcount += 1;
+                attacktime += Math.floor(0.6 * 4);
             }
         }
 
@@ -178,10 +184,10 @@ function sim(trg, wpn, maroll, max, aspd, its, header) {
             }
 
             chp -= Math.floor(cdmg);
-            attackcount += 1;
+            attacktime += (aspd * 0.6);
         }
 
-        out.push(Math.floor(attackcount * (0.6 * aspd)));
+        out.push(attacktime);
     }
     printout(header);
 }
