@@ -1,8 +1,9 @@
 const fs = require('fs');
 const simheader = 'ZCB Zebak + 2 spec @ 300 rlvl';
-const iterations = 10000;
+const iterations = 50000;
 const rubytoggle = true;
-const zcbspecs = 2;
+const zcbspecs = 0;
+const vwrspecs = 3;
 //salt = 26 ovl = 21 rangepot = 13
 const boost = 26;
 
@@ -14,6 +15,7 @@ const weapons = {
         acc:251,
         str:149,
         aspd:5,
+        setbonus:[1,1],
         ruby:true,
         info: 'ZCB + Masori',
     },
@@ -21,13 +23,17 @@ const weapons = {
         acc:217,
         str:139,
         aspd:5,
+        setbonus:[1,1],
         ruby:true,
+        info: 'ZCB + Dhides',
     },
     bofa: {
         acc:221,
         str:113,
         aspd:4,
+        setbonus:[1.15,1.3],
         ruby:false,
+        info: 'Bofa + Crystal',
     }
 };
 
@@ -44,6 +50,7 @@ const target = {
         bdef:150,
         rdef:20,
         toamult:true,
+        info: 'Warden P3',
     },
     olm: {
         hp:800,
@@ -61,12 +68,12 @@ const target = {
 
 var out = [];
 
-calc(target.zebak, weapons.zcbmasori);
+calc(target.wardenp3, weapons.bofa);
 function calc(trg, wpn, header) {
     const estr = Math.floor(((99 + boost) * 1.23) + 8);
-    const max = Math.floor((0.5 + estr * ((wpn.str) + 64)) / 640);
+    const max = Math.floor(((0.5 + estr * ((wpn.str) + 64)) / 640) * wpn.setbonus[0]);
     const eatk = Math.floor(((99 + boost) * 1.23) + 5);
-    const aroll = Math.floor(eatk * (wpn.acc + 64));
+    const aroll = Math.floor((eatk * (wpn.acc + 64)) * wpn.setbonus[1]);
     var droll = 0;
     if (trg.toamult) {
         droll = Math.floor(((trg.bdef + 9) * (trg.rdef + 64) * drollmult));
@@ -75,7 +82,22 @@ function calc(trg, wpn, header) {
     }
     const acc = 1 - ((droll + 2) / (2 * aroll + 1));
     const dph = (max * acc) / 2;
-    const dps = dph / 3;
+    const dps = dph / (0.6 * wpn.aspd);
+    var chp = 0;
+    if (trg.toamult) {
+        chp = (trg.hp * drollmult);
+    } else {
+        chp = trg.hp;
+    }
+    const ettk = (chp / dps);
+
+    var specscount = '';
+    if (zcbspecs > 0) {
+        specscount += 'ZCB: ' + zcbspecs + ' ';
+    }
+    if (vwrspecs > 0) {
+        specscount += 'Voidwaker: ' + vwrspecs;
+    }
 
     const calcoutput = [
         [wpn.info + ' v ' + trg.info + ' @ ' + raidlvl + ' rlvl'],
@@ -83,9 +105,12 @@ function calc(trg, wpn, header) {
         ['Max Hit: ' + max],
         ['Accuracy: ' + acc],
         ['DPH: ' + dph],
-        ['DPS: ' + dps + ' [excluding rubies]'],
+        ['DPS: ' + dps + ' [excl. rubies]'],
         ['Max Attack Roll: ' + aroll],
         ['NPC Max Def Roll: ' + droll],
+        ['Estimated TTK: ' + ettk + ' [excl. specs]'],
+        [''],
+        ['Sim Specs: ' + specscount]
     ]
 
     var calcoutdata = "export const calcvalues = " + JSON.stringify(calcoutput) + '\n';
@@ -119,6 +144,14 @@ function sim(trg, wpn, maroll, max, aspd, its, header) {
         }
         chp -= (zcbspecs * 110);
         var attackcount = 0 + zcbspecs;
+        if (vwrspecs > 0) {
+            for (v = 0; v < vwrspecs; v++) {
+                var vwhit = Math.floor(Math.random() * 75);
+                chp -= vwhit;
+                attackcount += 1;
+            }
+        }
+
         while (chp > 0) {
             var cdmg = 0;
 
@@ -159,7 +192,7 @@ function printout(header) {
     for (let a = 0; a < out.length; a++) {
         atotal += out[a];
     }
-    const simresult = 'TTK average after ' + iterations + ' iterations:' + atotal / out.length;
+    const simresult = 'Simulated TTK avg @ [' + iterations + '] iterations: ' + atotal / out.length;
     dataexport(header, simresult);
 }
 
