@@ -25,7 +25,7 @@
       var dlabels = [];
       var dvalues = [];
       for (let d = 0; d < dpsvalues.length; d++) {
-        dlabels.push(dpsvalues[d][0]);
+        dlabels.push(Math.floor(dpsvalues[d][0]));
         dvalues.push(dpsvalues[d][1]);
       }
     const ctx = document.getElementById('myChart');
