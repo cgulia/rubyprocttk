@@ -1,0 +1,67 @@
+<!DOCTYPE html> 
+<html>
+<head>
+    <meta charset="utf-8">
+    <link href="rangesim.css" type="text/css" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="wrap">
+    <div class="chart">
+        <canvas id="myChart"></canvas>
+    </div>
+    <div id="calc">
+      <h2><b>Calc & Sim Data:</b></h2>
+    </div>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script type="module">
+      import { dpsvalues } from './simoutput.mjs';
+      import { dpsheader } from './simoutput.mjs';
+      console.log(dpsvalues);
+      var dlabels = [];
+      var dvalues = [];
+      for (let d = 0; d < dpsvalues.length; d++) {
+        dlabels.push(dpsvalues[d][0]);
+        dvalues.push(dpsvalues[d][1]);
+      }
+    const ctx = document.getElementById('myChart');
+    new Chart(ctx, {
+        type: 'line',
+      data: {
+          labels: dlabels,
+        datasets: [{
+              label: dpsheader,
+            data: dvalues,
+            borderWidth: 1
+        },
+    ]
+      },
+      options: {
+          tension: 0,
+        scales: {
+            y: {
+              beginAtZero: true
+          }
+        }
+      }
+    });
+
+    import { calcvalues } from './calcoutput.mjs';
+    import { dpsresult } from './simoutput.mjs';
+    let div = document.getElementById("calc");
+    var calcstring = '';
+    for (let c = 0; c < calcvalues.length; c++) {
+      div.append(calcvalues[c] + '\n');
+      var br = document.createElement("br");
+      div.appendChild(br);
+    }
+
+    var br = document.createElement("br");
+    div.appendChild(br);
+    div.append(dpsresult);
+  </script>
+</body>
+</html>
