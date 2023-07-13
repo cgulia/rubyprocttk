@@ -1,14 +1,13 @@
 const fs = require('fs');
 const simheader = 'ZCB Zebak + 2 spec @ 300 rlvl';
 const iterations = 10000;
-const rubytoggle = true;
 const zcbspecs = 0;
-const vwrspecs = 0;
+const vwrspecs = 1;
 //salt = 26 ovl = 21 rangepot = 13
-const boost = 26;
+const boost = 21;
 
 //ToA vars
-const raidlvl = 400;
+const raidlvl = 350;
 const drollmult = 1 + (0.4 * (raidlvl / 100));
 const weapons = {
     zcbmasori: {
@@ -16,6 +15,7 @@ const weapons = {
         str:149,
         aspd:5,
         setbonus:[1,1],
+        dragonbane:false,
         ruby:true,
         info: 'ZCB + Masori',
     },
@@ -24,6 +24,7 @@ const weapons = {
         str:139,
         aspd:5,
         setbonus:[1,1],
+        dragonbane:false,
         ruby:true,
         info: 'ZCB + Dhides',
     },
@@ -32,8 +33,28 @@ const weapons = {
         str:113,
         aspd:4,
         setbonus:[1.15,1.3],
+        dragonbane:false,
         ruby:false,
         info: 'Bofa + Crystal',
+    },
+    bpmasori: {
+        acc:147,
+        str:70,
+        aspd:2,
+        setbonus:[1,1],
+        dragonbane:false,
+        ruby:false,
+        info: 'BP + DDarts + Masori',
+    },
+    dhcbdhides: {
+        acc:195,
+        str:139,
+        aspd:5,
+        setbonus:[1,1],
+        dragonbane:true,
+        dragonbonus:[1.25, 1.3],
+        ruby:true,
+        info: 'DHCB + Dhides',
     }
 };
 
@@ -43,6 +64,7 @@ const target = {
         bdef:70,
         rdef:110,
         toamult:true,
+        type: 'none',
         info: 'Zebak',
     },
     wardenp3: {
@@ -50,6 +72,7 @@ const target = {
         bdef:150,
         rdef:20,
         toamult:true,
+        type: 'none',
         info: 'Warden P3',
     },
     olm: {
@@ -57,29 +80,48 @@ const target = {
         bdef:150,
         rdef:50,
         toamult:false,
+        type: 'draconic',
+        info: 'Olm Headphase',
     },
     vasa: {
         hp:300,
         bdef:175,
         rdef:60,
         toamult:false,
+        type: 'none',
     }
 };
 
 var out = [];
 
-calc(target.wardenp3, weapons.bofa);
+calc(target.zebak, weapons.bofa);
 function calc(trg, wpn, header) {
+    //effective strength
     const estr = Math.floor(((99 + boost) * 1.23) + 8);
-    const max = Math.floor(((0.5 + estr * ((wpn.str) + 64)) / 640) * wpn.setbonus[0]);
+    //max hit
+    var max = 0;
+    if (wpn.dragonbane && trg.type == 'draconic') {
+        max = Math.floor(((0.5 + estr * ((wpn.str) + 64)) / 640) * wpn.dragonbonus[0]);
+    } else {
+        max = Math.floor(((0.5 + estr * ((wpn.str) + 64)) / 640) * wpn.setbonus[0]);
+    }
+    //effective ranged attack
     const eatk = Math.floor(((99 + boost) * 1.23) + 5);
-    const aroll = Math.floor((eatk * (wpn.acc + 64)) * wpn.setbonus[1]);
+    //attack roll
+    var aroll = 0;
+    if (wpn.dragonbane && trg.type == 'draconic') {
+        aroll = Math.floor((eatk * (wpn.acc + 64)) * wpn.dragonbonus[1]);
+    } else {
+        aroll = Math.floor((eatk * (wpn.acc + 64)) * wpn.setbonus[1]);
+    }
+    //target defence roll
     var droll = 0;
     if (trg.toamult) {
         droll = Math.floor(((trg.bdef + 9) * (trg.rdef + 64) * drollmult));
     } else {
         droll = Math.floor((trg.bdef + 9) * (trg.rdef + 64));
     }
+
     const acc = 1 - ((droll + 2) / (2 * aroll + 1));
     const dph = (max * acc) / 2;
     const dps = dph / (0.6 * wpn.aspd);
@@ -101,6 +143,7 @@ function calc(trg, wpn, header) {
 
     const calcoutput = [
         [wpn.info + ' v ' + trg.info + ' @ ' + raidlvl + ' rlvl'],
+        [trg.bdef + 'bdef ' + trg.rdef + 'rdef ' + Math.floor(chp) + 'hp'],
         [''],
         ['Max Hit: ' + max],
         ['Accuracy: ' + acc],
@@ -108,7 +151,7 @@ function calc(trg, wpn, header) {
         ['DPS: ' + dps + ' [excl. rubies]'],
         ['Max Attack Roll: ' + aroll],
         ['NPC Max Def Roll: ' + droll],
-        ['Estimated TTK: ' + ettk + ' [excl. specs]'],
+        ['Estimated TTK: ' + Math.floor(ettk * 100000) / 100000 + ' [hp/dps excl. specs & rubies]'],
         [''],
         ['Sim Specs: ' + specscount]
     ]
@@ -184,7 +227,11 @@ function sim(trg, wpn, maroll, max, aspd, its, header) {
             }
 
             chp -= Math.floor(cdmg);
-            attacktime += (aspd * 0.6);
+            if (it == 0) {
+                attacktime += 0.6;
+            } else {
+                attacktime += (aspd * 0.6);
+            }
         }
 
         out.push(attacktime);
